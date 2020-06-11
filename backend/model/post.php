@@ -1,5 +1,8 @@
 <?php
 
+//necessita a ligação para funcionar
+require("../../db/connection.php");
+
 class Post
 {
     public $id;
@@ -28,9 +31,6 @@ class Vote
     }
 }
 
-//necessita a ligação para funcionar
-require("../../db/connection.php");
-
 function GetPosts($posts)
 {
     //variável para aceder a base de dados
@@ -58,6 +58,7 @@ function GetPosts($posts)
             $vote = $conn->query($sql);
 
             if ($rowVote = $vote->fetch_assoc()) {
+                $upVote = $rowVote["Up"];
                 $vote = new Vote($rowVote["Up"], $rowVote["Down"]);
             }
 
@@ -69,4 +70,44 @@ function GetPosts($posts)
         $result = json_encode($posts, JSON_UNESCAPED_UNICODE);
         echo $result;
     }
+}
+
+function CreatePost($post, $user_Id)
+{
+    //variável para aceder a base de dados
+    global $conn;
+    $stmt = $conn->stmt_init();
+
+    //cria os "votes" para o "Post"
+    $stmt->prepare("INSERT INTO votes (User_Id, Up, Down, Modifying) VALUES (?, ?, ?, ?)");
+    $zero = 0; //é necessário fazer isto pois o "bind_param" não aceita valores se não forem variáveis
+    $one = 1;
+    $stmt->bind_param("iiii", $user_Id, $zero, $zero, $one);
+
+    $stmt->execute();
+
+    //vai buscar o "Id" do "vote" que acabou de ser criado
+    $sql = "SELECT Id FROM votes WHERE User_Id=" . $user_Id . " AND Modifying=1";
+    $vote_id = $conn->query($sql);
+
+    if ($id = $vote_id->fetch_assoc()) {
+        $vote_id = $id["Id"];
+    }
+
+    $title = $post->title; 
+    $description = $post->description;
+
+    //coloca a query numa variável
+    if ($stmt->prepare("INSERT INTO post (User_Id, Title, Description, Votes_Id) VALUES (?, ?, ?, ?)")) {
+        $stmt->bind_param("issi", $user_Id, $title, $description, $vote_id);
+        $stmt->execute();
+    }
+
+    $stmt->prepare("UPDATE votes SET Modifying=0 WHERE Id=" . $vote_id);
+    $stmt->execute();
+
+    $stmt->close();
+    $conn->close();
+
+    echo "Post criado com exito!";
 }

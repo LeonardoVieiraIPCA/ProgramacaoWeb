@@ -10,3 +10,12 @@ if (isset($_GET["refresh"]) && $_GET["refresh"] != "") {
 
     GetPosts($posts);
 }
+
+if (isset($_POST["insert"]) && $_POST["insert"] != "") {
+
+    //passa esse valor para a variável objInsertJSON e descodifica-a
+    $objInsertJSON = $_POST["insert"];
+    $post = json_decode($objInsertJSON);
+
+    CreatePost($post, 2);
+}
