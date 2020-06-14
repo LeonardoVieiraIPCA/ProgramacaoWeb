@@ -9,24 +9,24 @@
 	if (mysqli_connect_errno())
 	{
 		//Se houver algum erro/problema com a conexão, para o script e apresenta o erro
-		exit('Conexão falhada na conexão com o SQL: ' . mysqli_connect_error());
+		exit("Conexão falhada na conexão com o SQL: " . mysqli_connect_error());
 	}
 	//Verificamos se os dados existem
 	if (!isset($_POST['username'], $_POST['password'], $_POST['email']))
 	{
 		//Não foram obtidos os dados que deveriam ter sido enviados
-		exit('Por favor, preencha todos os campos do formulário');
+		exit("Por favor, preencha todos os campos do formulário");
 	}
 	//Verifica se os campos de registo enviados não estão vazios
 	if (empty($_POST['username']) || empty($_POST['password']) || empty($_POST['email']))
 	{
 		//Um ou mais valores estão vazios
-		exit('Por favor, preencha todos os campos do formulário');
+		exit("Por favor, preencha todos os campos do formulário");
 	}
 	//Verifica se existe alguma conta com o mesmo nome de utilizador
 	if ($stmt = $con->prepare('SELECT id, password FROM accounts WHERE username = ?'))
 	{
-		//Parâmetros de ligação e hash da senha usando a função PHP passoword_hash
+		//Parâmetros de ligação e hash da senha usando a função PHP passoword_hash (usa-se "s" por que é uma string)
 		$stmt->bind_param('s', $_POST['username']);
 		$stmt->execute();
 		$stmt->store_result();
@@ -43,15 +43,15 @@
 			{
 				if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
 				{
-					exit('O email não é válido');
+					exit("O email não é válido");
 				}
 				if (preg_match('/[A-Za-z0-9]+/', $_POST['username']) == 0)
 				{
-					exit('O utilizador não é válido');
+					exit("O utilizador não é válido");
 				}
 				if (strlen($_POST['password']) > 20 || strlen($_POST['password']) < 5)
 				{
-					exit('A palavra-passe deve ter entre 5 e 20 carateres');
+					exit("A palavra-passe deve ter entre 5 e 20 carateres");
 				}
 				//Para não se expor a palavra-passe na base de dados, realiza-se o hash da senha e usa o password_verify quando o utilizador efetuar o login
 				$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -62,7 +62,7 @@
 			else
 			{
 				//Houve um erro na instrução SQL, verifique se a tabela existe com os 3 campos
-				echo 'Ocorreu um erro';
+				echo "Ocorreu um erro";
 			}
 		}
 		$stmt->close();
@@ -70,7 +70,7 @@
 	else
 	{
 		//Houve um erro na instrução SQL, verifique se a tabela existe com os 3 campos
-		echo 'Ocorreu um erro';
+		echo "Ocorreu um erro";
 	}
 	$con->close();
 ?>

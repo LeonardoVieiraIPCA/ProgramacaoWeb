@@ -10,13 +10,13 @@
 	if ( mysqli_connect_errno())
 	{
 		//Se houver algum erro/problema com a conexão, para o script e apresenta o erro
-		exit('Conexão falhada na conexão com o SQL: ' . mysqli_connect_error());
+		exit("Ocorreu um erro na conexão com o SQL: " . mysqli_connect_error());
 	}
 	//Verificamos se os dados do formulário de login foram enviados, a função isset() verifica se os dados existem
 	if (!isset($_POST['username'], $_POST['password']))
 	{
 		//Não foi possível obter os dados que deviam ter sido enviados
-		exit('Por favor, preencha os campos do nome de utilizador e a palavra-passe');
+		exit("Por favor, preencha os campos do nome de utilizador e a palavra-passe");
 	}
 	//Prepara a instrução SQL e impedirá a injeção de SQL
 	if ($stmt = $con->prepare('SELECT id, password FROM accounts WHERE username = ?'))
@@ -48,12 +48,12 @@
 			}
 			else
 			{
-				echo 'Palavra-passe incorreta';
+				echo "Palavra-passe incorreta";
 			}
 		}
 		else
 		{
-			echo 'Nome de utilizador incorreto';
+			echo "Nome de utilizador incorreto";
 		}
 		$stmt->close();
 		//Remove todos os dados da sessão
