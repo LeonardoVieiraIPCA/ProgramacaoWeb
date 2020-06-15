@@ -19,10 +19,10 @@
 		exit("Por favor, preencha os campos do nome de utilizador e a palavra-passe");
 	}
 	//Prepara a instrução SQL e impedirá a injeção de SQL
-	if ($stmt = $con->prepare('SELECT id, password FROM accounts WHERE username = ?'))
+	if ($stmt = $con->prepare('SELECT id, password FROM user WHERE Username = username'))
 	{
 		//Parâmetros de ligação
-		$stmt->bind_param('s', $_POST['username']);
+		//$stmt->bind_param('s', $_POST['username']);
 		$stmt->execute();
 		//Armazena o resultado para que se possa verificar se a conta existe na base de dados
 		$stmt->store_result();
