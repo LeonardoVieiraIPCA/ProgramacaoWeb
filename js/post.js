@@ -31,10 +31,12 @@ $(document).ready(function () {
             data: { insert: insertObjJSON },
             cache: false,
 
-            success: function (person) {
+            success: function (msg) {
 
                 //caso consiga inserir com sucesso irá avisar o ultizador
-                alert(person);
+                alert(msg);
+
+                RefreshFeed();
 
                 //vai limpar o form
                 $("#title")[0].value = "";
@@ -48,31 +50,27 @@ $(document).ready(function () {
     })
 
     //ao carregar no botão delete da tabela vai eliminar a respetiva pessoa 
-    $('#table').on('click', '.delete', function (e) {
+    $('#posts').on('click', '.delete', function (e) {
         e.preventDefault();
 
-        //vai buscar o id do respetivo utilziador
-        let id = $(this).parents()[1].id;
+        //vai buscar o "id" do respetivo utilziador
+        let id = $(this).parents()[0].id;
 
         $.ajax({
-            //faz o POST do id para o ficheiro "controller.php"
+            //faz o POST do "id" para o ficheiro "post.php"
             type: "POST",
-            url: "./backend/controller.php",
+            url: "./backend/controller/post.php",
 
-            //o ficheiro "controller.php" vai procurar por um POST request com o nome de delete
+            //o ficheiro "post.php" vai procurar por um POST request com o nome de delete
             data: { delete: JSON.stringify(id) },
             cache: false,
 
-            //o valor recebido vai ser transformado no tipo JSON
-            dataType: 'json',
-            success: function (person) {
+            success: function (msg) {
 
-                //caso consiga eliminar com sucesso irá avisar o ultizador
-                alert("A pessoa " + person.firstName + " " + person.lastName + " com o ID: " + person.personID
-                    + " de " + person.age + " anos, foi eliminada!");
+                alert(msg);
 
                 //e irá recarregar a tabela
-                GetPerson();
+                RefreshFeed()
             },
             error: function (data) {
                 //em caso de erro irá avisar um possível motivo pelo qual não foi possível eliminar a pessoa
@@ -84,11 +82,11 @@ $(document).ready(function () {
     function RefreshFeed() {
         $.ajax({
 
-            //faz o GET com um array vazio para o ficheiro "controller.php"
+            //faz o GET com um array vazio para o ficheiro "post.php"
             type: "GET",
             url: "./backend/controller/post.php",
 
-            //o ficheiro "controller.php" vai procurar por um GET request com o nome de "refresh"
+            //o ficheiro "post.php" vai procurar por um GET request com o nome de "refresh"
             data: { refresh: JSON.stringify([]) },
             cache: false,
 
@@ -96,17 +94,18 @@ $(document).ready(function () {
             //o valor recebido vai ser transformado no tipo JSON
             success: function (data) {
                 let posts = data;
-                //vai atualizar a tabela com a informação recebida
-                $('#posts').empty();
 
-                //cria a tabela com cada utilizador
+                //limpa os posts antigos
+                $('#posts > div').remove();
+
+                //atualiza os posts
                 posts.forEach(post => {
                     $("#posts").append($('<div class="row">'
-                        + '<form id=' + post.id + '>'
-                        + '<h2 class="title"><a href="#">' + post.title + '</a></h2>'
-                        + '<a class="delete btn btn-danger">Delete</a><br>'
-                        + '<label><a class="changeVotesColor" href="#"><img class="upVote" src="./img/up-arrow.png"></a> Up Votes: ' + post.Vote.upVote + '</label><br>'
-                        + '<label><a class="changeVotesColor" href="#"><img class="downVote" src="./img/down-arrow.png"></a> Down Votes: ' + post.Vote.downVote + '</label>'
+                        + '<form class="post" id=' + post.id + '>'
+                        + '<h2>' + post.title + '</h2>'
+                        + '<!--<a class="delete">Delete</a><br>-->'
+                        + '<label><a class="changeVotesColor" href="#"><img class="upVote" src="./img/up-arrow.png"></a>' + post.Vote.upVote + '</label><br>'
+                        + '<label><a class="changeVotesColor" href="#"><img class="downVote" src="./img/down-arrow.png"></a>' + post.Vote.downVote + '</label>'
                         + '</form>'
                         + '</div>'
                     ));
@@ -119,25 +118,89 @@ $(document).ready(function () {
         })
     }
 
-    //é obrigatório começar com um id caso contrário não entra na função
+    $('#posts').on('click', function (e) {
+        let post = e.target;
+        if (post.className == "post" && post.id != "") {
+
+            $.ajax({
+
+                //faz o GET com um array vazio para o ficheiro "post.php"
+                type: "GET",
+                url: "./backend/controller/post.php",
+
+                //o ficheiro "post.php" vai procurar por um GET request com o nome de "refresh"
+                data: { getPost: JSON.stringify(post.id) },
+                cache: false,
+
+                dataType: 'json',
+                //o valor recebido vai ser transformado no tipo JSON
+                success: function (data) {
+
+                    $('body > div').remove();
+
+                    $("body").append($('<div id="posts">'
+                        + '<div class="row">'
+                        + '<form class="post" id=' + data.id + '>'
+                        + '<h1>' + data.title + '</h1>'
+                        + '<span>' + data.username + '</span>'
+                        + '<br>'
+                        + '<a class="delete">Delete</a><br>'
+                        + '<label><a class="changeVotesColor" href="#"><img class="upVote" src="./img/up-arrow.png"></a>' + data.Vote.upVote + '</label><br>'
+                        + '<label><a class="changeVotesColor" href="#"><img class="downVote" src="./img/down-arrow.png"></a>' + data.Vote.downVote + '</label>'
+                        + '<p>' + data.description + '</p>'
+                        + '</form>'
+                        + '</div>'
+                        + '<button onClick="window.location.reload();">Go Back</button>'
+                        + '</div>'
+                    ));
+
+                },
+                error: function (data) {
+                    //caso contrario irá apresentar uma mensagem a dizer que não foi possível encontrar resultados
+                    RefreshFeed(data);
+                }
+            })
+        }
+    })
+
+    //NOTA: É obrigatório começar com um "id" caso contrário não entra na função
+    //Sistema de "Upvote" e "DownVote"
     $('#posts').on('click', '.changeVotesColor', function (e) {
         e.preventDefault();
 
         //vai buscar o "id" do respetivo "post"
         let id = $(this).parents()[1].id;
 
+        //valor tipo de botão que foi carregado, se foi o "upVote" ou o "downVote" 
         let voteType = e.target.className;
 
-        let vote = $('form#' + id).children().children().children("." + voteType);
+        /*
+        valores dos 2 botões de "votes"
+         vote[0] - botão upVote 
+         vote[1] - botão downVote
+         vote[0].attributes[0].value - valor da "class" do "upVote"
+         vote[0].attributes[1].value - valor do "src" do "upVote"
+         vote[1].attributes[1].value - valor do "src" do "downVote"
+        */
+        let vote = $('form#' + id).children().children().children();
 
-        if (vote.attr("class") == "upVote") {
-            vote.attr({
-                src: "./img/up-arrow-check.png"
-            })
+        if (vote[0].attributes[0].value == voteType) {
+            if (vote[0].attributes[1].value == "./img/up-arrow-check.png") {
+                vote[0].attributes[1].value = "./img/up-arrow.png";
+                vote[1].attributes[1].value = "./img/down-arrow.png";
+            } else {
+                vote[0].attributes[1].value = "./img/up-arrow-check.png";
+                vote[1].attributes[1].value = "./img/down-arrow.png";
+            }
         } else {
-            vote.attr({
-                src: "./img/down-arrow-check.png"
-            })
+
+            if (vote[1].attributes[1].value == "./img/down-arrow-check.png") {
+                vote[1].attributes[1].value = "./img/down-arrow.png";
+                vote[0].attributes[1].value = "./img/up-arrow.png";
+            } else {
+                vote[1].attributes[1].value = "./img/down-arrow-check.png";
+                vote[0].attributes[1].value = "./img/up-arrow.png";
+            }
         }
 
 

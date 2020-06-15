@@ -7,15 +7,17 @@ class Post
 {
     public $id;
     public $username;
-    public $Vote;
     public $title;
+    public $description;
+    public $Vote;
 
-    function __construct($id, $username, $Vote, $title)
+    function __construct($id, $username, $title, $description, $Vote)
     {
         $this->id = $id;
         $this->username = $username;
-        $this->Vote = $Vote;
         $this->title = $title;
+        $this->description = $description;
+        $this->Vote = $Vote;
     }
 }
 
@@ -58,12 +60,11 @@ function GetPosts($posts)
             $vote = $conn->query($sql);
 
             if ($rowVote = $vote->fetch_assoc()) {
-                $upVote = $rowVote["Up"];
                 $vote = new Vote($rowVote["Up"], $rowVote["Down"]);
             }
 
             //guardar o valor que foi buscar no objeto
-            $post = new Post($row["Id"], $username, $vote, $row["Title"]);
+            $post = new Post($row["Id"], $username, $row["Title"], "", $vote);
             array_push($posts, $post);
         }
 
@@ -72,7 +73,7 @@ function GetPosts($posts)
     }
 }
 
-function CreatePost($post, $user_Id)
+function CreatePost($post, $User_Id)
 {
     //variável para aceder a base de dados
     global $conn;
@@ -82,24 +83,24 @@ function CreatePost($post, $user_Id)
     $stmt->prepare("INSERT INTO votes (User_Id, Up, Down, Modifying) VALUES (?, ?, ?, ?)");
     $zero = 0; //é necessário fazer isto pois o "bind_param" não aceita valores se não forem variáveis
     $one = 1;
-    $stmt->bind_param("iiii", $user_Id, $zero, $zero, $one);
+    $stmt->bind_param("iiii", $User_Id, $zero, $zero, $one);
 
     $stmt->execute();
 
     //vai buscar o "Id" do "vote" que acabou de ser criado
-    $sql = "SELECT Id FROM votes WHERE User_Id=" . $user_Id . " AND Modifying=1";
+    $sql = "SELECT Id FROM votes WHERE User_Id=" . $User_Id . " AND Modifying=1";
     $vote_id = $conn->query($sql);
 
     if ($id = $vote_id->fetch_assoc()) {
         $vote_id = $id["Id"];
     }
 
-    $title = $post->title; 
+    $title = $post->title;
     $description = $post->description;
 
     //coloca a query numa variável
     if ($stmt->prepare("INSERT INTO post (User_Id, Title, Description, Votes_Id) VALUES (?, ?, ?, ?)")) {
-        $stmt->bind_param("issi", $user_Id, $title, $description, $vote_id);
+        $stmt->bind_param("issi", $User_Id, $title, $description, $vote_id);
         $stmt->execute();
     }
 
@@ -110,4 +111,62 @@ function CreatePost($post, $user_Id)
     $conn->close();
 
     echo "Post criado com exito!";
+}
+
+function DeletePost($id, $User_Id)
+{
+    //variável para aceder a base de dados
+    global $conn;
+    $stmt = $conn->stmt_init();
+
+    //cria os "votes" para o "Post"
+    $stmt->prepare("DELETE FROM post WHERE id=" . $id);
+    $stmt->execute();
+
+    $stmt->close();
+    $conn->close();
+
+    echo "Post Eliminado com exito!";
+}
+
+function GetPost($postId, $User_Id)
+{
+    //variável para aceder a base de dados
+    global $conn;
+
+    //coloca a query numa variável
+    $sql = "SELECT * FROM post WHERE Id=" . $postId;
+    $result = $conn->query($sql);
+
+    //cria um objeto vazio
+    $post = new stdClass();
+
+    if ($result->num_rows > 0) {
+
+        //guarda todos os posts no array
+        while ($row = $result->fetch_assoc()) {
+
+            //vai buscar o "user" associado ao "post"
+            $sql = "SELECT Username FROM user WHERE id=" . $row["User_Id"];
+            $username = $conn->query($sql);
+
+            if ($rrr = $username->fetch_assoc()) {
+                $username = $rrr["Username"];
+            }
+
+            //vai buscar o "vote" associado ao "post"
+            $sql = "SELECT Up, Down FROM votes WHERE id=" . $row["Votes_Id"];
+            $vote = $conn->query($sql);
+
+            if ($rowVote = $vote->fetch_assoc()) {
+                $vote = new Vote($rowVote["Up"], $rowVote["Down"]);
+            }
+
+            //guardar o valor que foi buscar no objeto
+            $post = new Post($row["Id"], $username, $row["Title"], $row["Description"], $vote, );
+        }
+
+        $result = json_encode($post, JSON_UNESCAPED_UNICODE);
+        echo $result;
+    }
 }
