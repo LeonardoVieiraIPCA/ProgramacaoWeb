@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 10-Jun-2020 às 17:32
+-- Tempo de geração: 17-Jun-2020 às 14:23
 -- Versão do servidor: 10.4.11-MariaDB
 -- versão do PHP: 7.4.3
 
@@ -56,7 +56,7 @@ CREATE TABLE `post` (
 
 INSERT INTO `post` (`Id`, `User_Id`, `Title`, `Description`, `Votes_Id`) VALUES
 (1, 1, 'TITLE', 'DESCRIPTION', 1),
-(2, 2, 'test', 'Azumanga Daioh', 2);
+(2, 2, 'test_Title', 'test_Description', 8);
 
 -- --------------------------------------------------------
 
@@ -81,6 +81,18 @@ INSERT INTO `user` (`Id`, `Username`, `Password`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estrutura da tabela `uservote`
+--
+
+CREATE TABLE `uservote` (
+  `Id` int(11) NOT NULL,
+  `User_Id` int(11) NOT NULL,
+  `Vote_Id` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura da tabela `votes`
 --
 
@@ -98,7 +110,13 @@ CREATE TABLE `votes` (
 
 INSERT INTO `votes` (`Id`, `User_Id`, `Up`, `Down`, `Modifying`) VALUES
 (1, 1, 5, 2, 0),
-(2, 2, 0, 0, 0);
+(2, 2, 0, 0, 0),
+(3, 2, 0, 0, 0),
+(4, 2, 0, 0, 0),
+(5, 2, 0, 0, 0),
+(6, 2, 0, 0, 0),
+(7, 2, 0, 0, 0),
+(8, 2, 0, 0, 0);
 
 --
 -- Índices para tabelas despejadas
@@ -125,6 +143,12 @@ ALTER TABLE `post`
 -- Índices para tabela `user`
 --
 ALTER TABLE `user`
+  ADD PRIMARY KEY (`Id`);
+
+--
+-- Índices para tabela `uservote`
+--
+ALTER TABLE `uservote`
   ADD PRIMARY KEY (`Id`);
 
 --
@@ -156,10 +180,16 @@ ALTER TABLE `user`
   MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT de tabela `uservote`
+--
+ALTER TABLE `uservote`
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de tabela `votes`
 --
 ALTER TABLE `votes`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Restrições para despejos de tabelas
