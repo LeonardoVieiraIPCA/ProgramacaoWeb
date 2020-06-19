@@ -11,7 +11,8 @@
     $message = @trim(stripslashes($_POST['message'])); 
 
     $email_from = $email;
-    $email_to = 'email@email.com';//replace with your email
+    //Substitua pelo seu email
+    $email_to = 'email@email.com';
 
     $body = 'Name: ' . $name . "\n\n" . 'Email: ' . $email . "\n\n" . 'Subject: ' . $subject . "\n\n" . 'Message: ' . $message;
 
@@ -19,3 +20,4 @@
 
     echo json_encode($status);
     die;
+?>

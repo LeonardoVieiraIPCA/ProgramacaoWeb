@@ -173,3 +173,4 @@ function GetPost($postId, $User_Id)
         echo $result;
     }
 }
+?>
