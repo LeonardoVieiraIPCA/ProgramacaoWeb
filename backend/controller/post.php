@@ -37,3 +37,4 @@ if (isset($_GET["getPost"]) && $_GET["getPost"] != "") {
     
     GetPost($postId, 2);
 }
+?>
