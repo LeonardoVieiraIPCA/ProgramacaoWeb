@@ -11,22 +11,22 @@ if (isset($_GET["refresh"]) && $_GET["refresh"] != "") {
     GetPosts($posts);
 }
 
-if (isset($_POST["insert"]) && $_POST["insert"] != "") {
+if (isset($_POST["insert"]) && $_POST["insert"] != "" && isset($_SESSION['loggedin'])) {
 
     //passa esse valor para a variável objInsertJSON e descodifica-a
     $objInsertJSON = $_POST["insert"];
     $post = json_decode($objInsertJSON);
 
-    CreatePost($post, 2);
+    CreatePost($post, $_SESSION['id']);
 }
 
-if (isset($_POST["delete"]) && $_POST["delete"] != "") {
+if (isset($_POST["delete"]) && $_POST["delete"] != "" && isset($_SESSION['loggedin'])) {
 
     //passa esse valor para a variável postIdDeleteJSON e descodifica-a
     $postIdDeleteJSON = $_POST["delete"];
     $postId = json_decode($postIdDeleteJSON);
 
-    DeletePost($postId, 2);
+    DeletePost($postId, $_SESSION['id']);
 }
 
 if (isset($_GET["getPost"]) && $_GET["getPost"] != "") {
@@ -35,6 +35,14 @@ if (isset($_GET["getPost"]) && $_GET["getPost"] != "") {
     $postIdJSON = $_GET["getPost"];
     $postId = json_decode($postIdJSON);
     
-    GetPost($postId, 2);
+    GetPost($postId);
 }
-?>
+
+if (isset($_POST["votesChange"]) && $_POST["votesChange"] != "") {
+
+    //passa esse valor para a variável postJSON e descodifica-a
+    $postJSON = $_POST["votesChange"];
+    $post = json_decode($postJSON);
+    
+    VotesChange($post, $_SESSION['id']);
+}

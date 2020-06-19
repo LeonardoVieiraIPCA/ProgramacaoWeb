@@ -3,6 +3,8 @@
 //necessita a ligação para funcionar
 require("../../db/connection.php");
 
+//Criação de uma sessão
+session_start();
 class Post
 {
     public $id;
@@ -103,16 +105,16 @@ function CreatePost($post, $User_Id)
     if ($stmt->prepare("INSERT INTO post (User_Id, Title, Description, Votes_Id) VALUES (?, ?, ?, ?)")) {
         $stmt->bind_param("issi", $User_Id, $title, $description, $vote_id);
         $stmt->execute();
+
+        $idPost = $conn->insert_id;
+
+        $stmt->prepare("UPDATE votes SET Modifying=0 WHERE Id=" . $vote_id);
+        $stmt->execute();
     }
-
-    $idPost = $conn->insert_id;
-
-    $stmt->prepare("UPDATE votes SET Modifying=0 WHERE Id=" . $vote_id);
-    $stmt->execute();
 
     $stmt->close();
     $conn->close();
-    
+
     echo $idPost;
 }
 
@@ -132,7 +134,7 @@ function DeletePost($id, $User_Id)
     echo "Post Eliminado com exito!";
 }
 
-function GetPost($postId, $User_Id)
+function GetPost($postId)
 {
     //variável para aceder a base de dados
     global $conn;
@@ -153,8 +155,8 @@ function GetPost($postId, $User_Id)
             $sql = "SELECT Username FROM user WHERE id=" . $row["User_Id"];
             $username = $conn->query($sql);
 
-            if ($rrr = $username->fetch_assoc()) {
-                $username = $rrr["Username"];
+            if ($usernameRow = $username->fetch_assoc()) {
+                $username = $usernameRow["Username"];
             }
 
             //vai buscar o "vote" associado ao "post"
@@ -166,11 +168,67 @@ function GetPost($postId, $User_Id)
             }
 
             //guardar o valor que foi buscar no objeto
-            $post = new Post($row["Id"], $username, $row["Title"], $row["Description"], $vote, );
+            $post = new Post($row["Id"], $username, $row["Title"], $row["Description"], $vote,);
         }
 
         $result = json_encode($post, JSON_UNESCAPED_UNICODE);
         echo $result;
     }
 }
-?>
+
+function VotesChange($postVote, $User_Id)
+{
+    //variável para aceder a base de dados
+    global $conn;
+
+    //vai buscar o "Id" do "vote" que acabou de ser criado
+    $sql = "SELECT * FROM post WHERE Id=" . $postVote->id;
+    $post = $conn->query($sql);
+
+    if ($postInfo = $post->fetch_assoc()) {
+        $votes_Id = $postInfo["Votes_Id"];
+    }
+
+    $sql = "SELECT * FROM votes WHERE Id=" . $votes_Id;
+    $vote = $conn->query($sql);
+
+    if ($postInfo = $vote->fetch_assoc()) {
+        $upVote = $postInfo["Up"];
+        $downVote = $postInfo["Down"];
+    }
+
+    $sql = "SELECT * FROM uservote WHERE User_Id=" . $User_Id . " AND Vote_Id=" . $votes_Id;
+    $uservote = $conn->query($sql);
+
+    if ($postInfo = $uservote->fetch_assoc()) {
+        $uservote = $postInfo;
+    }
+
+    echo json_encode($uservote, JSON_UNESCAPED_UNICODE);
+
+    $stmt = $conn->stmt_init();
+
+    if ($uservote->num_rows <= 0) {
+
+        $stmt->prepare("INSERT INTO uservote (User_Id, Vote_Id, VoteType) VALUES (?, ?, ?)");
+        $zero = 0;
+        $stmt->bind_param("iii", $User_Id, $votes_Id, $zero);
+    }
+
+    if ($postVote->voteType == "upVote") {
+        $upVote = $upVote + 1;
+        $voteType = 2;
+    } else {
+        $downVote = $downVote + 1;
+        $voteType = 1;
+    }
+
+    $stmt->prepare("UPDATE votes SET up=" . $upVote . ", down=" . $downVote . " WHERE Id=" . $votes_Id);
+    $stmt->execute();
+
+    $stmt->prepare("UPDATE uservote SET VoteType=" . $voteType . "WHERE User_Id=" . $User_Id . " AND Vote_Id=" . $votes_Id);
+    $stmt->execute();
+
+    $stmt->close();
+    $conn->close();
+}

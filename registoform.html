@@ -3,7 +3,7 @@
 
 <head>
 	<meta charset="utf-8">
-	<title>Login</title>
+	<title>Register</title>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
 	<link href="css/style.css" rel="stylesheet" type="text/css">
 </head>
@@ -11,19 +11,15 @@
 <body>
 	<div class="register">
 		<h1>Register</h1>
-		<form action="register.php" method="post" autocomplete="false">
+		<form action="./backend/controller/register.php" method="post" autocomplete="false">
 			<label for="username">
 				<i class="fas fa-user"></i>
 			</label>
-			<input type="text" name="username" placeholder="Username" id="username" required>
+			<input type="text" name="registUsername" placeholder="Username" id="registUsername" required>
 			<label for="password">
 				<i class="fas fa-lock"></i>
 			</label>
-			<input type="password" name="passwords" placeholder="Password" id="passwords" required>
-			<label for="email">
-				<i class="fas fa-envelope"></i>
-			</label>
-			<input type="email" name="email" placeholder="Email" id="email" required>
+			<input type="password" name="passwords" placeholder="Password" id="registPassword" required>
 			<input type="submit" value="Register">
 		</form>
 	</div>
