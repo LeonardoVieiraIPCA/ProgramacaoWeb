@@ -1,6 +1,6 @@
 <?php
 	//Estabelecer a ligação à base de dados
-	$mysqli = new mysqli("localhost", "root", "", "pw2");
+	$mysqli = new mysqli("localhost", "root", "", "dark_reddit");
 	$mysqli->set_charset('utf8');
 
 	if($mysqli->connect_error != "")
@@ -13,24 +13,19 @@
 	echo "Conexão estabelecida";
 
 	//Verifica se os campos foram todos preenchidos
-	if(isset($_POST["username"]) && $_POST["username"]!="" && isset($_POST["passwords"]) && $_POST["passwords"]!="" && isset($_POST["email"]) && $_POST["email"]!="")
+	if(isset($_POST["username"]) && $_POST["username"]!="" && isset($_POST["passwords"]) && $_POST["passwords"]!="")
 	{
 		//Verifica se os dados estão de acordo com as condições
-		if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL))
-		{
-			exit("O email não é válido");
-		}
 		if(preg_match('/[A-Za-z0-9]+/', $_POST['username']) == 0)
 		{
 			exit("O utilizador não é válido");
 		}
 		if(strlen($_POST['passwords']) > 20 || strlen($_POST['passwords']) < 5)
 		{
-			exit("A palavra-passe deve ter entre 5 e 29 carateres");
+			exit("A palavra-passe deve ter entre 5 e 20 carateres");
 		}
 		$nomeUtilizador = $mysqli->real_escape_string($_POST["username"]);
 		$palavraPasse = password_hash($_POST['passwords'], PASSWORD_DEFAULT);
-		$Email = $mysqli->real_escape_string($_POST["email"]);
 
 		//Insere os dados do utilizador na base de dados
 		$sql = "INSERT INTO user (Username, Password) VALUES ('$nomeUtilizador', '$palavraPasse')";
