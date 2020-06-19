@@ -77,6 +77,7 @@ function CreatePost($post, $User_Id)
 {
     //variável para aceder a base de dados
     global $conn;
+
     $stmt = $conn->stmt_init();
 
     //cria os "votes" para o "Post"
@@ -104,13 +105,15 @@ function CreatePost($post, $User_Id)
         $stmt->execute();
     }
 
+    $idPost = $conn->insert_id;
+
     $stmt->prepare("UPDATE votes SET Modifying=0 WHERE Id=" . $vote_id);
     $stmt->execute();
 
     $stmt->close();
     $conn->close();
-
-    echo "Post criado com exito!";
+    
+    echo $idPost;
 }
 
 function DeletePost($id, $User_Id)
