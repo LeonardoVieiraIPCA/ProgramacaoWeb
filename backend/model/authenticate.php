@@ -26,7 +26,7 @@ function Authenticate($username, $pass)
 				$_SESSION['loggedin'] = TRUE;
 				$_SESSION['name'] = $username;
 				$_SESSION['id'] = $id;
-				header('Location: ../../post.html');
+				header('Location: ../../index.html');
 				
 			} else {
 				echo 'Incorrect password!';

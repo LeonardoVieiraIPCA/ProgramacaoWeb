@@ -23,6 +23,22 @@ class Post
     }
 }
 
+class Comment
+{
+    public $id;
+    public $username;
+    public $text;
+    public $Vote;
+
+    function __construct($id, $username, $text, $Vote)
+    {
+        $this->id = $id;
+        $this->username = $username;
+        $this->text = $text;
+        $this->Vote = $Vote;
+    }
+}
+
 class Vote
 {
     public $upVote;
@@ -41,7 +57,7 @@ function GetPosts($posts)
     global $conn;
 
     //coloca a query numa variável
-    $sql = "SELECT Id, User_Id, Votes_Id, Title FROM post";
+    $sql = "SELECT * FROM post";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
@@ -53,8 +69,8 @@ function GetPosts($posts)
             $sql = "SELECT Username FROM user WHERE id=" . $row["User_Id"];
             $username = $conn->query($sql);
 
-            if ($rrr = $username->fetch_assoc()) {
-                $username = $rrr["Username"];
+            if ($usernameRow = $username->fetch_assoc()) {
+                $username = $usernameRow["Username"];
             }
 
             //vai buscar o "vote" associado ao "post"
@@ -66,9 +82,14 @@ function GetPosts($posts)
             }
 
             //guardar o valor que foi buscar no objeto
-            $post = new Post($row["Id"], $username, $row["Title"], "", $vote);
+            $post = new Post($row["Id"], $username, $row["Title"], $row["Description"], $vote);
             array_push($posts, $post);
         }
+
+        //colocar por ordem Desc 
+        usort($posts, function ($first, $second) {
+            return $first->Vote->upVote < $second->Vote->upVote;
+        });
 
         $result = json_encode($posts, JSON_UNESCAPED_UNICODE);
         echo $result;
@@ -118,7 +139,7 @@ function CreatePost($post, $User_Id)
     echo $idPost;
 }
 
-function DeletePost($id, $User_Id)
+function DeletePost($id)
 {
     //variável para aceder a base de dados
     global $conn;
@@ -142,9 +163,6 @@ function GetPost($postId)
     //coloca a query numa variável
     $sql = "SELECT * FROM post WHERE Id=" . $postId;
     $result = $conn->query($sql);
-
-    //cria um objeto vazio
-    $post = new stdClass();
 
     if ($result->num_rows > 0) {
 
@@ -176,59 +194,227 @@ function GetPost($postId)
     }
 }
 
-function VotesChange($postVote, $User_Id)
+function VotesChange($objVote, $User_Id)
 {
     //variável para aceder a base de dados
     global $conn;
 
     //vai buscar o "Id" do "vote" que acabou de ser criado
-    $sql = "SELECT * FROM post WHERE Id=" . $postVote->id;
-    $post = $conn->query($sql);
+    if ($objVote->type != "comments") {
 
-    if ($postInfo = $post->fetch_assoc()) {
-        $votes_Id = $postInfo["Votes_Id"];
+        $sql = "SELECT * FROM post WHERE Id=" . $objVote->id;
+        $post = $conn->query($sql);
+
+        if ($postInfo = $post->fetch_assoc()) {
+            $votes_Id = $postInfo["Votes_Id"];
+        }
+    } else {
+        $sql = "SELECT * FROM comments WHERE Id=" . $objVote->id;
+        $post = $conn->query($sql);
+
+        if ($postInfo = $post->fetch_assoc()) {
+            $votes_Id = $postInfo["Votes_Id"];
+        }
     }
 
     $sql = "SELECT * FROM votes WHERE Id=" . $votes_Id;
     $vote = $conn->query($sql);
 
-    if ($postInfo = $vote->fetch_assoc()) {
-        $upVote = $postInfo["Up"];
-        $downVote = $postInfo["Down"];
+    if ($v = $vote->fetch_assoc()) {
+        $upVote = $v["Up"];
+        $downVote = $v["Down"];
     }
 
-    $sql = "SELECT * FROM uservote WHERE User_Id=" . $User_Id . " AND Vote_Id=" . $votes_Id;
-    $uservote = $conn->query($sql);
-
-    if ($postInfo = $uservote->fetch_assoc()) {
-        $uservote = $postInfo;
+    if ($objVote->type != "comments") {
+        $sql = "SELECT * FROM uservote WHERE User_Id=" . $User_Id . " AND Vote_Id=" . $votes_Id;
+        $uservote = $conn->query($sql);
+    } else {
+        $sql = "SELECT * FROM uservote WHERE Vote_Id=" . $votes_Id;
+        $uservote = $conn->query($sql);
     }
 
-    echo json_encode($uservote, JSON_UNESCAPED_UNICODE);
+    //vai buscar a base de dados o valor do "vote"
+    // VoteType = 0 - sem "vote"
+    // VoteType = 1 - "downVote"
+    // VoteType = 2 - "upVote"
+    if ($vt = $uservote->fetch_assoc()) {
+        $voteType = $vt["VoteType"];
+    }
 
     $stmt = $conn->stmt_init();
 
-    if ($uservote->num_rows <= 0) {
-
+    if ($uservote->num_rows < 1) {
         $stmt->prepare("INSERT INTO uservote (User_Id, Vote_Id, VoteType) VALUES (?, ?, ?)");
         $zero = 0;
         $stmt->bind_param("iii", $User_Id, $votes_Id, $zero);
     }
 
-    if ($postVote->voteType == "upVote") {
-        $upVote = $upVote + 1;
-        $voteType = 2;
+    //se o utilizador carregou em "upVote"
+    if ($objVote->voteType == "upVote") {
+
+        //se já tinha dado "upVote" então vai tirar o "upVote"
+        if ($voteType == 2) {
+            $upVote = $upVote - 1;
+            $voteType = 0;
+        } else if ($voteType == 1) {
+            $downVote = $downVote - 1;
+            $upVote = $upVote + 1;
+            $voteType = 2;
+        } else { //casso contrário irá adiciona-lo
+            $upVote = $upVote + 1;
+            $voteType = 2;
+        }
     } else {
-        $downVote = $downVote + 1;
-        $voteType = 1;
+
+        //se já tinha dado "downVote" então vai tirar o "downVote"
+        if ($voteType == 1) {
+            $downVote = $downVote - 1;
+            $voteType = 0;
+        } else if ($voteType == 2) {
+            $upVote = $upVote - 1;
+            $downVote = $downVote + 1;
+            $voteType = 1;
+        } else { //casso contrário irá adiciona-lo
+            $downVote = $downVote + 1;
+            $voteType = 1;
+        }
     }
 
     $stmt->prepare("UPDATE votes SET up=" . $upVote . ", down=" . $downVote . " WHERE Id=" . $votes_Id);
     $stmt->execute();
 
-    $stmt->prepare("UPDATE uservote SET VoteType=" . $voteType . "WHERE User_Id=" . $User_Id . " AND Vote_Id=" . $votes_Id);
+    $stmt->prepare("UPDATE uservote SET VoteType=" . $voteType . " WHERE User_Id=" . $User_Id . " AND Vote_Id=" . $votes_Id);
     $stmt->execute();
 
     $stmt->close();
     $conn->close();
+
+    $votes = new Vote($upVote, $downVote);
+
+    echo json_encode($votes, JSON_UNESCAPED_UNICODE);
+}
+
+function SearchPost($searchPost)
+{
+    //variável para aceder a base de dados
+    global $conn;
+
+    //coloca a query numa variável
+    $sql = "SELECT * FROM post WHERE Title LIKE '%" . $searchPost->titleSearch . "%'";
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+
+        //guarda todos os posts no array
+        while ($row = $result->fetch_assoc()) {
+
+            //vai buscar o "user" associado ao "post"
+            $sql = "SELECT Username FROM user WHERE id=" . $row["User_Id"];
+            $username = $conn->query($sql);
+
+            if ($usernameRow = $username->fetch_assoc()) {
+                $username = $usernameRow["Username"];
+            }
+
+            //vai buscar o "vote" associado ao "post"
+            $sql = "SELECT Up, Down FROM votes WHERE id=" . $row["Votes_Id"];
+            $vote = $conn->query($sql);
+
+            if ($rowVote = $vote->fetch_assoc()) {
+                $vote = new Vote($rowVote["Up"], $rowVote["Down"]);
+            }
+
+            //guardar o valor que foi buscar no objeto
+            $post = new Post($row["Id"], $username, $row["Title"], $row["Description"], $vote);
+            array_push($searchPost->result, $post);
+        }
+
+        //colocar por ordem Desc 
+        usort($searchPost->result, function ($first, $second) {
+            return $first->Vote->upVote < $second->Vote->upVote;
+        });
+
+        $result = json_encode($searchPost->result, JSON_UNESCAPED_UNICODE);
+        echo $result;
+    }
+}
+
+function AddComment($comment, $User_Id)
+{
+    //variável para aceder a base de dados
+    global $conn;
+
+    $stmt = $conn->stmt_init();
+
+    //cria os "votes" para o "Post"
+    $stmt->prepare("INSERT INTO votes (User_Id, Up, Down, Modifying) VALUES (?, ?, ?, ?)");
+    $zero = 0; //é necessário fazer isto pois o "bind_param" não aceita valores se não forem variáveis
+    $one = 1;
+    $stmt->bind_param("iiii", $User_Id, $zero, $zero, $one);
+
+    $stmt->execute();
+
+    $vote_id = $conn->insert_id;
+
+    //coloca a query numa variável
+    if ($stmt->prepare("INSERT INTO comments (User_Id, Votes_Id, Post_Id, Text) VALUES (?, ?, ?, ?)")) {
+        $stmt->bind_param("iiis", $User_Id, $vote_id, $comment->postId, $comment->commentText);
+        $stmt->execute();
+
+        $stmt->prepare("INSERT INTO uservote (User_Id, Vote_Id, VoteType) VALUES (?, ?, ?)");
+        $zero = 0;
+        $stmt->bind_param("iii", $User_Id, $vote_id, $zero);
+        $stmt->execute();
+
+        $stmt->prepare("UPDATE votes SET Modifying=0 WHERE Id=" . $vote_id);
+        $stmt->execute();
+    }
+
+    $stmt->close();
+    $conn->close();
+}
+
+function LoadComments($post)
+{
+    //variável para aceder a base de dados
+    global $conn;
+
+    //coloca a query numa variável
+    $sql = "SELECT * FROM comments WHERE Post_Id=" . $post->id;
+    $result = $conn->query($sql);
+
+    if ($result->num_rows > 0) {
+
+        //guarda todos os posts no array
+        while ($row = $result->fetch_assoc()) {
+
+            //vai buscar o "user" associado ao "post"
+            $sql = "SELECT Username FROM user WHERE id=" . $row["User_Id"];
+            $username = $conn->query($sql);
+
+            if ($usernameRow = $username->fetch_assoc()) {
+                $username = $usernameRow["Username"];
+            }
+
+            //vai buscar o "vote" associado ao "post"
+            $sql = "SELECT Up, Down FROM votes WHERE id=" . $row["Votes_Id"];
+            $vote = $conn->query($sql);
+
+            if ($rowVote = $vote->fetch_assoc()) {
+                $vote = new Vote($rowVote["Up"], $rowVote["Down"]);
+            }
+
+            //guardar o valor que foi buscar no objeto
+            $comment = new Comment($row["Id"], $username, $row["Text"], $vote);
+            array_push($post->comments, $comment);
+        }
+
+        //colocar por ordem Desc 
+        usort($post->comments, function ($first, $second) {
+            return $first->Vote->upVote < $second->Vote->upVote;
+        });
+
+        $result = json_encode($post->comments, JSON_UNESCAPED_UNICODE);
+        echo $result;
+    }
 }

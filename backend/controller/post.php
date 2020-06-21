@@ -40,9 +40,36 @@ if (isset($_GET["getPost"]) && $_GET["getPost"] != "") {
 
 if (isset($_POST["votesChange"]) && $_POST["votesChange"] != "") {
 
-    //passa esse valor para a variável postJSON e descodifica-a
-    $postJSON = $_POST["votesChange"];
-    $post = json_decode($postJSON);
+    //passa esse valor para a variável objJSON e descodifica-a
+    $objJSON = $_POST["votesChange"];
+    $obj = json_decode($objJSON);
     
-    VotesChange($post, $_SESSION['id']);
+    VotesChange($obj, $_SESSION['id']);
+}
+
+if (isset($_GET["search"]) && $_GET["search"] != "") {
+
+    //passa esse valor para a variável objRefreshJSON e descodifica-a
+    $searchJSON = $_GET["search"];
+    $searchPost = json_decode($searchJSON);
+
+    SearchPost($searchPost);
+}
+
+if (isset($_POST["addComment"]) && $_POST["addComment"] != "" && isset($_SESSION['loggedin'])) {
+
+    //passa esse valor para a variável objInsertJSON e descodifica-a
+    $commentJSON = $_POST["addComment"];
+    $comment = json_decode($commentJSON);
+
+    AddComment($comment, $_SESSION['id']);
+}
+
+if (isset($_GET["loadComments"]) && $_GET["loadComments"] != "") {
+
+    //passa esse valor para a variável objRefreshJSON e descodifica-a
+    $postJSON = $_GET["loadComments"];
+    $post = json_decode($postJSON);
+
+    LoadComments($post);
 }
