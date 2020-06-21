@@ -21,7 +21,7 @@ $(document).ready(function () {
             //o valor recebido vai ser transformado no tipo JSON
             success: function (data) {
                 let posts = data;
-                
+
                 //limpa os posts antigos
                 $('#posts > div').remove();
 
@@ -41,7 +41,7 @@ $(document).ready(function () {
                     ));
                 });
 
-                InsertPost();
+                CreatePostHTML();
                 EnterPost();
                 Votes();
                 Search();
@@ -84,7 +84,7 @@ $(document).ready(function () {
                     + '<p>' + post.description + '</p>'
                     + '</form>'
                     + '</div>'
-                    + '<button onClick="window.location.reload();">Go Back</button>'
+                    + '<a href="index.html"><button>Go Back</button></a>'
 
 
                     + '<div class="row">'
@@ -295,7 +295,6 @@ $(document).ready(function () {
                 dataType: "json",
                 //o valor recebido vai ser transformado no tipo JSON
                 success: function (vote) {
-                    alert(vote);
                     $('form#' + id).children().children()[1].textContent = vote.upVote;
                     $('form#' + id).children().children()[4].textContent = vote.downVote;
                 },
@@ -446,6 +445,37 @@ $(document).ready(function () {
                 //caso contrario irá apresentar uma mensagem a dizer que não foi possível encontrar resultados
                 alert("Este Post não tem comments" + data.responseText);
             }
+        })
+    }
+
+    function CreatePostHTML() {
+        $(".CreatePostHTML").click(function () {
+
+            $('#posts > div').remove();
+
+            $("#posts").append($(
+                '<div class="row">'
+                + '<div class="col-md">'
+                + '<h1>Post:</h1>'
+                + '<form id="insert" method="POST">'
+                + '<label for="title">Title:</label>'
+                + '<input required type="text" name="title" id="title">'
+
+                + '<br><br>'
+
+                + '<label for="description">Description:</label>'
+                + '<br>'
+                + '<textarea required type="text" name="description" id="description"></textarea>'
+
+                + '<br>'
+                + '<button class="btn btn-secondary" id="btn-insert">Submeter</button>'
+                + '</form>'
+                + '</div>'
+                + '</div>'
+            ));
+            InsertPost();
+
+
         })
     }
 })
