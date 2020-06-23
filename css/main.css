@@ -4,6 +4,11 @@
 *******Typography******
 **************************/
 
+
+#logout {
+    visibility: hidden;
+  }
+
 body {
     background: #fff;
     font-family: 'Open Sans', sans-serif;

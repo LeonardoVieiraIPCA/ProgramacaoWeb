@@ -3,7 +3,7 @@
 //necessita a ligação para funcionar
 require("../../db/connection.php");
 
-function Authenticate($username, $pass)
+function Authenticate($username, $pass, $rememberUser)
 {
 	global $conn;
 
@@ -22,18 +22,23 @@ function Authenticate($username, $pass)
 			if (password_verify($pass, $password)) {
 				// Verification success! User has loggedin!
 				// Create sessions so we know the user is logged in, they basically act like cookies but remember the data on the server.
-				session_regenerate_id();
-				$_SESSION['loggedin'] = TRUE;
-				$_SESSION['name'] = $username;
-				$_SESSION['id'] = $id;
-				header('Location: ../../index.html');
-				
+				if (!isset($rememberUser)) {
+					session_regenerate_id();
+					$_SESSION['loggedin'] = TRUE;
+					$_SESSION['username'] = $username;
+					$_SESSION['id'] = $id;
+				} else {
+					setcookie('cookieId', $id, time() + 3600);
+					setcookie('cookieLoggedin', TRUE, time() + 3600);
+					setcookie('cookieUsername', $username, time() + 3600);
+				}
 			} else {
 				echo 'Incorrect password!';
 			}
 		} else {
 			echo 'Incorrect username!';
 		}
+		header('Location: ../../index.html');
 
 		$stmt->close();
 	}

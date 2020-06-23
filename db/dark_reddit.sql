@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 22-Jun-2020 às 15:52
+-- Tempo de geração: 24-Jun-2020 às 00:42
 -- Versão do servidor: 10.4.11-MariaDB
 -- versão do PHP: 7.4.3
 
@@ -41,7 +41,10 @@ CREATE TABLE `comments` (
 --
 
 INSERT INTO `comments` (`Id`, `User_Id`, `Votes_Id`, `Post_Id`, `Text`) VALUES
-(20, 3, 37, 2, 'gggggg');
+(20, 3, 37, 2, 'gggggg'),
+(21, 3, 41, 3, 'jhkjhkjh'),
+(24, 4, 45, 3, 'fgdfdgfd'),
+(25, 4, 46, 3, 'gggggggggg');
 
 -- --------------------------------------------------------
 
@@ -74,7 +77,8 @@ INSERT INTO `post` (`Id`, `User_Id`, `Title`, `Description`, `Votes_Id`) VALUES
 (12, 2, 'uiuo', 'uiuo', 17),
 (13, 3, 'test', 'itle', 18),
 (14, 3, 'rrrrrrrrrrr', 'rrrrrrrrrrrrr', 19),
-(15, 3, 'jjjjjjjjjjj', 'jjjjjjjjjjj', 20);
+(15, 3, 'jjjjjjjjjjj', 'jjjjjjjjjjj', 20),
+(16, 3, 'fffffff', 'fffffff', 21);
 
 -- --------------------------------------------------------
 
@@ -120,9 +124,17 @@ INSERT INTO `uservote` (`Id`, `User_Id`, `Vote_Id`, `VoteType`) VALUES
 (33, 3, 8, 0),
 (46, 3, 12, 0),
 (53, 3, 11, 1),
-(62, 3, 9, 0),
+(62, 3, 9, 2),
 (63, 3, 14, 0),
-(64, 3, 37, 0);
+(64, 3, 37, 0),
+(65, 3, 41, 0),
+(66, 4, 42, 0),
+(67, 4, 43, 0),
+(68, 3, 21, 0),
+(69, 4, 21, 1),
+(70, 4, 45, 0),
+(71, 3, 17, 0),
+(72, 4, 46, 2);
 
 -- --------------------------------------------------------
 
@@ -150,8 +162,8 @@ INSERT INTO `votes` (`Id`, `User_Id`, `Up`, `Down`, `Modifying`) VALUES
 (5, 2, 0, 0, 0),
 (6, 2, 0, 0, 0),
 (7, 2, 0, 0, 0),
-(8, 2, 12, 11, 0),
-(9, 2, 55, 55, 0),
+(8, 2, 12, 14, 0),
+(9, 2, 63, 57, 0),
 (10, 2, 1, 1, 0),
 (11, 2, 1, 1, 0),
 (12, 2, 1, 1, 0),
@@ -159,11 +171,11 @@ INSERT INTO `votes` (`Id`, `User_Id`, `Up`, `Down`, `Modifying`) VALUES
 (14, 2, 6, 6, 0),
 (15, 2, 0, 0, 0),
 (16, 2, 0, 0, 0),
-(17, 2, 45, 2, 0),
+(17, 2, 45, 5, 0),
 (18, 3, 0, 0, 0),
 (19, 3, 0, 0, 0),
 (20, 3, 0, 0, 0),
-(21, 3, 0, 0, 1),
+(21, 3, 15, 15, 0),
 (22, 3, 0, 0, 1),
 (23, 3, 0, 0, 1),
 (24, 3, 0, 0, 1),
@@ -182,7 +194,13 @@ INSERT INTO `votes` (`Id`, `User_Id`, `Up`, `Down`, `Modifying`) VALUES
 (37, 3, 0, 0, 0),
 (38, 3, 0, 0, 1),
 (39, 3, 0, 0, 1),
-(40, 3, 0, 0, 1);
+(40, 3, 0, 0, 1),
+(41, 3, 60, 60, 0),
+(42, 4, 0, 0, 0),
+(43, 4, 0, 0, 0),
+(44, 3, 0, 0, 1),
+(45, 4, 39, 38, 0),
+(46, 4, 78, 52, 0);
 
 --
 -- Índices para tabelas despejadas
@@ -231,13 +249,13 @@ ALTER TABLE `votes`
 -- AUTO_INCREMENT de tabela `comments`
 --
 ALTER TABLE `comments`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de tabela `post`
 --
 ALTER TABLE `post`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT de tabela `user`
@@ -249,13 +267,13 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT de tabela `uservote`
 --
 ALTER TABLE `uservote`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT de tabela `votes`
 --
 ALTER TABLE `votes`
-  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `Id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- Restrições para despejos de tabelas

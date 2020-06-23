@@ -29,7 +29,7 @@ $(document).ready(function () {
                 posts.forEach(post => {
                     $("#posts").append($('<div class="row">'
                         + '<form id=' + post.id + '>'
-                        + '<h2 class="post">' + post.title + '</h2>'
+                        + '<h2 class="postTitle">' + post.title + '</h2>'
                         + '<p>Username: ' + post.username + '</p>'
                         + '<p>' + post.description + '</p>'
                         + '<div class="voteClick">'
@@ -45,6 +45,38 @@ $(document).ready(function () {
                 EnterPost();
                 Votes();
                 Search();
+                VerifyUser();
+            },
+            error: function (data) {
+                //caso contrario irá apresentar uma mensagem a dizer que não foi possível encontrar resultados
+                alert(data.responseText);
+            }
+        })
+
+
+    }
+    function VerifyUser() {
+        $.ajax({
+
+            //faz o GET com um array vazio para o ficheiro "post.php"
+            type: "GET",
+            url: "./backend/controller/verifyUser.php",
+
+            //o ficheiro "post.php" vai procurar por um GET request com o nome de "refresh"
+            data: { verifyUser: JSON.stringify() },
+            cache: false,
+
+            dataType: "json",
+            //o valor recebido vai ser transformado no tipo JSON
+            success: function (data) {
+                let verifyUser = data;
+                if (verifyUser.login == 1) {
+                    $("#login").css("visibility", "hidden");
+                    $("#logout").css("visibility", "visible");
+                } else {
+                    $("#login").css("visibility", "visible");
+                    $("#logout").css("visibility", "hidden");
+                }
             },
             error: function (data) {
                 //caso contrario irá apresentar uma mensagem a dizer que não foi possível encontrar resultados
@@ -71,9 +103,9 @@ $(document).ready(function () {
 
                 $('#posts > div').remove();
 
-                $("#posts").append($('<div class="row">'
+                $("#posts").append($('<div class="row" id="post">'
                     + '<form id=' + post.id + '>'
-                    + '<h1 class="post">' + post.title + '</h1>'
+                    + '<h1 class="postTitle">' + post.title + '</h1>'
                     + '<span>' + post.username + '</span>'
                     + '<br>'
                     + '<a class="delete">Delete</a><br>'
@@ -102,7 +134,7 @@ $(document).ready(function () {
 
                 AddComment(postId);
                 LoadComments(postId);
-                Delete();
+                Delete(postId);
                 Votes();
 
             },
@@ -114,7 +146,7 @@ $(document).ready(function () {
     }
 
     function EnterPost() {
-        $('.post').on('click', function (e) {
+        $('.postTitle').on('click', function (e) {
 
             let postId = $(this).parents()[0].id;
 
@@ -171,9 +203,41 @@ $(document).ready(function () {
         })
     }
 
-    function Delete() {
+    function Delete(postId) {
+
+        $.ajax({
+
+            //faz o GET com um array vazio para o ficheiro "post.php"
+            type: "GET",
+            url: "./backend/controller/verifyUserDelete.php",
+
+            //o ficheiro "post.php" vai procurar por um GET request com o nome de "refresh"
+            data: { verifyUserDelete: JSON.stringify(postId) },
+            cache: false,
+
+            dataType: "json",
+            //o valor recebido vai ser transformado no tipo JSON
+            success: function (data) {
+                if (data.canDeletePost == true) {
+                    $(".delete").css("visibility", "visible");
+                } else {
+                    $(".delete").css("visibility", "hidden");
+                }
+
+                for (let i = 0; i < data.commentsCanDelete.length; i++) {
+                    $(".comments form#" + data.commentsCanDelete[i] + " a.delete").css("visibility", "visible");
+                }
+
+            },
+            error: function (data) {
+                //caso contrario irá apresentar uma mensagem a dizer que não foi possível encontrar resultados
+                alert(data.responseText);
+                $(".delete").css("visibility", "hidden");
+            }
+        })
+
         //ao carregar no botão delete da tabela vai eliminar a respetiva pessoa 
-        $('#posts').on('click', '.delete', function (e) {
+        $('#post').on('click', '.delete', function (e) {
             e.preventDefault();
 
             //vai buscar o "id" do respetivo utilziador
@@ -190,10 +254,39 @@ $(document).ready(function () {
 
                 success: function (msg) {
 
-                    alert(msg);
+                    alert("Mensagem: " + msg);
 
                     //e irá recarregar a tabela
-                    RefreshFeed()
+                    RefreshFeed();
+                },
+                error: function (data) {
+                    //em caso de erro irá avisar um possível motivo pelo qual não foi possível eliminar a pessoa
+                    alert("Erro: " + data.responseText);
+                }
+            })
+        });
+
+        $('.comments').on('click', '.delete', function (e) {
+            e.preventDefault();
+
+            //vai buscar o "id" do respetivo utilziador
+            let id = $(this).parents()[0].id;
+
+            $.ajax({
+                //faz o POST do "id" para o ficheiro "post.php"
+                type: "POST",
+                url: "./backend/controller/post.php",
+
+                //o ficheiro "post.php" vai procurar por um POST request com o nome de delete
+                data: { deleteComment: JSON.stringify(id) },
+                cache: false,
+
+                success: function (msg) {
+
+                    alert("Mensagem: " + msg);
+
+                    //e irá recarregar os comments
+                    LoadComments(postId);
                 },
                 error: function (data) {
                     //em caso de erro irá avisar um possível motivo pelo qual não foi possível eliminar a pessoa
@@ -429,6 +522,7 @@ $(document).ready(function () {
                     $(".comments").append($('<div class="row">'
                         + '<form id=' + comment.id + '>'
                         + '<p>Username: ' + comment.username + '</p>'
+                        + '<a href="#" class="delete">Delete</a><br>'
                         + '<p>' + comment.text + '</p>'
                         + '<div class="voteClick">'
                         + '<a href="#"><img class="upVote" src="./img/up-arrow.png"></a> <label>' + comment.Vote.upVote + '</label><br>'
@@ -440,10 +534,6 @@ $(document).ready(function () {
                 });
 
                 Votes();
-            },
-            error: function (data) {
-                //caso contrario irá apresentar uma mensagem a dizer que não foi possível encontrar resultados
-                alert("Este Post não tem comments" + data.responseText);
             }
         })
     }

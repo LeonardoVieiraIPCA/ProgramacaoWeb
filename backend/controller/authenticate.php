@@ -14,4 +14,4 @@ $nomeUtilizador = $conn->real_escape_string($_POST["username"]);
 
 $password = $conn->real_escape_string($_POST["password"]);
 
-Authenticate($nomeUtilizador, $password);
+Authenticate($nomeUtilizador, $password, $_POST["rememberUser"]);

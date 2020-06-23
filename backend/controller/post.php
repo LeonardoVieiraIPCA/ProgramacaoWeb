@@ -11,22 +11,49 @@ if (isset($_GET["refresh"]) && $_GET["refresh"] != "") {
     GetPosts($posts);
 }
 
-if (isset($_POST["insert"]) && $_POST["insert"] != "" && isset($_SESSION['loggedin'])) {
+if (isset($_POST["insert"]) && $_POST["insert"] != "" && (isset($_SESSION['loggedin']) || isset($_COOKIE["cookieLoggedin"]))) {
 
     //passa esse valor para a variável objInsertJSON e descodifica-a
     $objInsertJSON = $_POST["insert"];
     $post = json_decode($objInsertJSON);
 
-    CreatePost($post, $_SESSION['id']);
+    if (isset($_COOKIE['cookieId'])) {
+        $userId = $_COOKIE['cookieId'];
+    } else if (isset($_SESSION['id'])) {
+        $userId = $_SESSION['id'];
+    }
+
+    CreatePost($post, $userId);
 }
 
-if (isset($_POST["delete"]) && $_POST["delete"] != "" && isset($_SESSION['loggedin'])) {
+if (isset($_POST["delete"]) && $_POST["delete"] != "" && (isset($_SESSION['loggedin']) || isset($_COOKIE["cookieLoggedin"]))) {
 
     //passa esse valor para a variável postIdDeleteJSON e descodifica-a
     $postIdDeleteJSON = $_POST["delete"];
     $postId = json_decode($postIdDeleteJSON);
 
-    DeletePost($postId, $_SESSION['id']);
+    if (isset($_COOKIE['cookieId'])) {
+        $userId = $_COOKIE['cookieId'];
+    } else if (isset($_SESSION['id'])) {
+        $userId = $_SESSION['id'];
+    }
+
+    DeletePost($postId, $userId);
+}
+
+if (isset($_POST["deleteComment"]) && $_POST["deleteComment"] != "" && (isset($_SESSION['loggedin']) || isset($_COOKIE["cookieLoggedin"]))) {
+
+    //passa esse valor para a variável postIdDeleteJSON e descodifica-a
+    $commentIdDeleteJSON = $_POST["deleteComment"];
+    $commentId = json_decode($commentIdDeleteJSON);
+
+    if (isset($_COOKIE['cookieId'])) {
+        $userId = $_COOKIE['cookieId'];
+    } else if (isset($_SESSION['id'])) {
+        $userId = $_SESSION['id'];
+    }
+
+    DeleteComment($commentId, $userId);
 }
 
 if (isset($_GET["getPost"]) && $_GET["getPost"] != "") {
@@ -34,17 +61,23 @@ if (isset($_GET["getPost"]) && $_GET["getPost"] != "") {
     //passa esse valor para a variável postIdJSON e descodifica-a
     $postIdJSON = $_GET["getPost"];
     $postId = json_decode($postIdJSON);
-    
+
     GetPost($postId);
 }
 
-if (isset($_POST["votesChange"]) && $_POST["votesChange"] != "") {
+if (isset($_POST["votesChange"]) && $_POST["votesChange"] != "" && (isset($_SESSION['loggedin']) || isset($_COOKIE["cookieLoggedin"]))) {
 
     //passa esse valor para a variável objJSON e descodifica-a
     $objJSON = $_POST["votesChange"];
     $obj = json_decode($objJSON);
-    
-    VotesChange($obj, $_SESSION['id']);
+
+    if (isset($_COOKIE['cookieId'])) {
+        $userId = $_COOKIE['cookieId'];
+    } else if (isset($_SESSION['id'])) {
+        $userId = $_SESSION['id'];
+    }
+
+    VotesChange($obj, $userId);
 }
 
 if (isset($_GET["search"]) && $_GET["search"] != "") {
@@ -56,13 +89,19 @@ if (isset($_GET["search"]) && $_GET["search"] != "") {
     SearchPost($searchPost);
 }
 
-if (isset($_POST["addComment"]) && $_POST["addComment"] != "" && isset($_SESSION['loggedin'])) {
+if (isset($_POST["addComment"]) && $_POST["addComment"] != "" && (isset($_SESSION['loggedin']) || isset($_COOKIE["cookieLoggedin"]))) {
 
     //passa esse valor para a variável objInsertJSON e descodifica-a
     $commentJSON = $_POST["addComment"];
     $comment = json_decode($commentJSON);
 
-    AddComment($comment, $_SESSION['id']);
+    if (isset($_COOKIE['cookieId'])) {
+        $userId = $_COOKIE['cookieId'];
+    } else if (isset($_SESSION['id'])) {
+        $userId = $_SESSION['id'];
+    }
+
+    AddComment($comment, $userId);
 }
 
 if (isset($_GET["loadComments"]) && $_GET["loadComments"] != "") {

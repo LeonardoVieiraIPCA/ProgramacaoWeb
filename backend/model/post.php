@@ -139,21 +139,60 @@ function CreatePost($post, $User_Id)
     echo $idPost;
 }
 
-function DeletePost($id)
+function DeletePost($postId, $userId)
 {
     //variável para aceder a base de dados
     global $conn;
     $stmt = $conn->stmt_init();
 
+    $sql = "SELECT * FROM post WHERE Id=" . $postId;
+    $user_Id = $conn->query($sql);
+
+    if ($id = $user_Id->fetch_assoc()) {
+        $user_Id = $id["User_Id"];
+    }
+
     //cria os "votes" para o "Post"
-    $stmt->prepare("DELETE FROM post WHERE id=" . $id);
-    $stmt->execute();
+    if ($userId == $user_Id) {
+        $stmt->prepare("DELETE FROM post WHERE Id=" . $postId);
+        $stmt->execute();
 
-    $stmt->close();
-    $conn->close();
+        $stmt->close();
+        $conn->close();
 
-    echo "Post Eliminado com exito!";
+        echo "Post Eliminado com exito!";
+    } else {
+        echo "Post não foi Eliminado!";
+    }
 }
+
+function DeleteComment($commentId, $userId)
+{
+    //variável para aceder a base de dados
+    global $conn;
+    $stmt = $conn->stmt_init();
+
+    $sql = "SELECT * FROM comments WHERE Id=" . $commentId;
+    $user_Id = $conn->query($sql);
+
+    if ($id = $user_Id->fetch_assoc()) {
+        $user_Id = $id["User_Id"];
+    }
+
+    //cria os "votes" para o "Post"
+    if ($userId == $user_Id) {
+        $stmt->prepare("DELETE FROM comments WHERE Id=" . $commentId);
+        $stmt->execute();
+
+        $stmt->close();
+        $conn->close();
+
+        echo "Post Eliminado com exito!";
+    } else {
+        echo "Post não foi Eliminado!";
+    }
+}
+
 
 function GetPost($postId)
 {
@@ -247,6 +286,8 @@ function VotesChange($objVote, $User_Id)
         $stmt->prepare("INSERT INTO uservote (User_Id, Vote_Id, VoteType) VALUES (?, ?, ?)");
         $zero = 0;
         $stmt->bind_param("iii", $User_Id, $votes_Id, $zero);
+        $stmt->execute();
+        $voteType = 0;
     }
 
     //se o utilizador carregou em "upVote"
@@ -279,6 +320,8 @@ function VotesChange($objVote, $User_Id)
             $voteType = 1;
         }
     }
+
+    //echo "fdghfjhfgjh: " .$voteType;
 
     $stmt->prepare("UPDATE votes SET up=" . $upVote . ", down=" . $downVote . " WHERE Id=" . $votes_Id);
     $stmt->execute();
